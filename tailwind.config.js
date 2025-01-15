@@ -5,7 +5,14 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'poke-red': "#ff0000",
+        'poke-dred': "#CC0000",
+        'poke-blue': "#3B4CCA",
+      }
+
+    },
   },
   plugins: [],
 }

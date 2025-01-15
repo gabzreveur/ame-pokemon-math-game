@@ -4,7 +4,7 @@ import { getPokemon } from './utils/api'; // Import the API function
 function App() {
   const [pokemon, setPokemon] = useState<any>(null); // State to store Pokémon data
   const [loading, setLoading] = useState<boolean>(true); // Loading state
-  const [pokemonId, setPokemonId] = useState<number>(1025); // State to store current Pokémon ID
+  const [pokemonId, setPokemonId] = useState<number>(666); // State to store current Pokémon ID
 
   // Fetch Pokémon data whenever the pokemonId changes
   useEffect(() => {
@@ -31,14 +31,17 @@ function App() {
       ) : pokemon ? (
         <div>
           <h1 className="text-4xl font-bold text-blue-600">
-            {pokemon.name.toUpperCase()}
+            {pokemon.name.toUpperCase()} - {pokemon.id}
           </h1>
-          <img
-            /*src={pokemon.sprites.front_default}*/
-            src={pokemon.sprites.other["showdown"].front_default ? pokemon.sprites.other["showdown"].front_default  : pokemon.sprites.front_default  }
-            alt={pokemon.name}
-            className="w-40 h-40"
-          />
+          <div className="border border-poke-blue rounded w-60 h-60 flex justify-center items-center bg-poke-blue">
+            <img
+              src={pokemon.sprites.other["showdown"].front_default ? pokemon.sprites.other["showdown"].front_default  : pokemon.sprites.front_default  }
+              alt={pokemon.name}
+              className="w-40 max-h-40 object-contain"
+            />
+          </div>
+        
+
           <p className="text-lg">Type: {pokemon.types[0].type.name} {pokemon.types[1] ? "Type 2: " + pokemon.types[1].type.name : ""}</p>
           <button
             onClick={handleChangePokemon}

@@ -10,6 +10,8 @@ export default {
         'poke-red': "#ff0000",
         'poke-dred': "#CC0000",
         'poke-blue': "#3B4CCA",
+        'poke-grey': "#1F3236",
+        'gameboy-red': "#502f2a"
       }
 
     },

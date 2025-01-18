@@ -11,7 +11,11 @@ export default {
         'poke-dred': "#CC0000",
         'poke-blue': "#3B4CCA",
         'poke-grey': "#1F3236",
-        'gameboy-red': "#502f2a"
+        'gameboy-red': "#c4bebb",
+        'gameboy-dgrey': "#272929"
+      },
+      borderWidth:{
+        '50': '50px'
       }
 
     },

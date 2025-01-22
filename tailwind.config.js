@@ -16,7 +16,18 @@ export default {
       },
       borderWidth:{
         '50': '50px'
-      }
+      },
+
+      keyframes: {
+        attack: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(10px)' },
+        },
+      },
+      animation: {
+        attack: 'attack 0.3s ease-in-out',
+      },
+
 
     },
   },

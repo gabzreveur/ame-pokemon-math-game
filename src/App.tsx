@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getPokemon } from "./utils/api"; // Import the API function
 import Layout from './Layout';
 import { generateAddition } from "./utils/generateAddition";
@@ -9,9 +9,44 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [pokemonIds, setPokemonIds] = useState<[number, number]>([58, 155]); // State to store Pokémon IDs
   const [attackAnim, setAttackAnim] = useState<any>(null);
-
+  const inputRef = useRef(null);
 
   const [activeIndex, setActiveIndex] = useState<any>(null); // State to track active <li>
+  const [selectedAttack, setSelectedAttack] = useState<any>(null); // State for selected attack
+
+//addition inputs
+  const [thousands, setThousands] = useState("");
+  const [tens, setTens] = useState("");
+  const [units, setUnits] = useState("");
+
+  
+  const thousandsRef = useRef<HTMLInputElement>(null);
+  const tensRef = useRef<HTMLInputElement>(null);
+  const unitsRef = useRef<HTMLInputElement>(null);
+
+  // Handle input changes
+  const handleChange = (value: string, type: string) => {
+    if (type === "thousands") setThousands(value);
+    if (type === "tens") setTens(value);
+    if (type === "units") setUnits(value);
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, type: string) => {
+    if (/^\d$/.test(event.key)) {
+      setTimeout(() => {
+        if (type === "tens") thousandsRef.current?.focus();
+        if (type === "units") tensRef.current?.focus();
+      }, 0); // Wait for the input value to update
+    }
+  };
+
+
+//focus after selectedAttack
+  useEffect(() => { 
+    if (selectedAttack && unitsRef.current) {
+      unitsRef.current.focus();
+    }
+  }, [selectedAttack]);
 
   // Set initial Pokémon IDs on component mount
   useEffect(() => {
@@ -57,7 +92,39 @@ function App() {
       }
       handleNewAttacks();
       setTimeout(() => setAttackAnim(""), 300); // Adjust time to match animation duration
+      setThousands(""); // Reset thousands input
+      setTens(""); // Reset tens input
+      setUnits(""); // Reset units input
+      setSelectedAttack(null);
+    
    };
+
+   const [knockedOutImages, setKnockedOutImages] = useState([]); // Store last 3 KO images
+
+   // Detect if pokemon was beaten
+   useEffect(() => {
+    if (hp1 <= 0 || hp2 <= 0) {
+
+        if(pokemon1){
+        // Store knocked-out Pokémon's image
+        const knockedOutPokemon = hp1 <= 0 ? pokemon1 : pokemon2;
+        const knockedOutImage = knockedOutPokemon.sprites.front_default;
+        
+
+        setKnockedOutImages((prev) => {
+          const updatedImages = [...prev, knockedOutImage].slice(-3); // Keep only last 3
+          return updatedImages;
+        });
+        hp2<=0 ? setKnockedOutImages([]) : "";
+
+
+      }
+   
+
+      handleChangePokemons();
+    }
+  }, [hp1, hp2]);
+
 
    // Fetch Pokémon data whenever the IDs change
   useEffect(() => {
@@ -82,8 +149,8 @@ function App() {
 
   // Function to handle button click and change both Pokémon IDs
   const handleChangePokemons = () => {
-    const nextId1 = Math.floor(Math.random() * 1025) + 1;
-    const nextId2 = Math.floor(Math.random() * 1025) + 1;
+    const nextId1 = Math.floor(Math.random() * 925) + 1; //there are 1025 but not all of them has all images
+    const nextId2 = Math.floor(Math.random() * 925) + 1;
     setPokemonIds([nextId1, nextId2]); // Update IDs to trigger the useEffect
     handleNewAttacks();
   };
@@ -100,17 +167,138 @@ function App() {
             <div>
               <button
                 onClick={handleChangePokemons}
-                className="mt-4 p-2 bg-blue-500 text-white rounded w-full mb-8"
+                className="mt-4 p-2 bg-blue-500 text-white rounded w-full mb-4"
               >
                 Try a different pokemon...
               </button>
             </div>
        
             {[pokemon1, pokemon2].map((pokemon, index) => (
-              <div key={index} className={`mb-8 flex flex-col md:flex-row ${index === 1 ? 'md:flex-row-reverse' : ''} `}>
-                {index==1 ? 
-                 <div className=" flex-1 "></div> : ""
-                }
+              <div key={index} className={`mb-8 flex flex-col md:flex-row ${index === 1 ? 'flex-col-reverse md:flex-row-reverse' : ''} `}>
+                 {index === 1 ? (
+                  <div className="flex-1">
+                    {selectedAttack ? (
+                     <div className=" flex-1 pt-4 bg-red-400 text-white text-center h-full p-2">
+                    
+                        <p className="">Selected Attack </p><h3 className="text-lg font-bold">
+                        
+                          {pokemon2?.moves?.[activeIndex]?.move?.name
+                            ? pokemon2.moves[activeIndex].move.name.toUpperCase()
+                            : "No Move"}
+                        </h3>
+                  
+                       
+
+                        <div className="grid grid-cols-4 gap-2 text-center items-center justify-items-center w-2/3 mx-auto ">
+                          {/* First row (numbers) */}
+                          <span className="ml-1"> </span>
+                          {selectedAttack.num1.toString().split("").length < 2 ? (<span> </span>) : null}
+                          {selectedAttack.num1.toString().split("").map((digit, index) => (
+                            <span key={index} className="mx-1">{digit}</span>
+                          ))}
+                          <span className="ml-1">+</span>
+
+                          <span className="ml-1"> </span>
+                          {selectedAttack.num2.toString().split("").length < 2 ? (<span> </span>) : null}
+                          {selectedAttack.num2.toString().split("").map((digit, index) => (
+                            <span key={index} className="mx-1">{digit}</span>
+                          ))}
+                          <span className="ml-1">=</span>
+
+                          {/* Second row (inputs) */}
+                          <input
+                            ref={thousandsRef}
+                            type="number"
+                            value={thousands}
+                            onChange={(e) => {
+                              const newThousands = e.target.value; // Get the new input value
+                              const newValue = Number(`${newThousands}${tens}${units}`); // Combine latest input values
+
+                              const lastDigit = newThousands.slice(-1); 
+                              // Only allow 1 digit numbers
+                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                                handleChange(lastDigit, "thousands");
+                              }
+
+                              if (newValue === selectedAttack.result) { 
+                                handleAttackClick(selectedAttack.result); // Run the function
+                              }
+                                      }}
+                            className="w-6 text-center text-gameboy-dgrey border m-1 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
+                            placeholder="-"
+                          />
+                          <input
+                            ref={tensRef}
+                            type="number"
+                            value={tens}
+                            onChange={(e) =>  {
+                              const value = e.target.value;
+                              const lastDigit = value.slice(-1); 
+                              // Only allow 1 digit numbers
+                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                                handleChange(lastDigit, "tens");
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyPress(e, "tens")}
+                            className="w-6 text-center text-gameboy-dgrey border m-1 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
+                            placeholder="-"
+                          />
+                          <input
+                            ref={unitsRef}
+                            type="number"
+                            value={units}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              const lastDigit = value.slice(-1); 
+                              // Only allow 1 digit numbers
+                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                                handleChange(lastDigit, "units");
+                              }
+                            }}
+                            onKeyDown={(e) => handleKeyPress(e, "units")}
+                            className="w-6 text-center text-gameboy-dgrey border m-1 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
+                            placeholder="-"
+                          />
+
+                      </div>
+                 
+                            
+
+
+        
+          {/*
+                        <input
+                          type="number"
+                          ref={inputRef} // Attach ref here
+                          onChange={(e) => {
+                            const value = Number(e.target.value); // Convert input value to a number
+                            if (value === selectedAttack.result) { // Strict equality check
+                              handleAttackClick(selectedAttack.result); // Run the function
+                            }
+                          }} // Update state
+                          placeholder="0"
+                          className={`border p-1 m-2 rounded w-1/2 text-gameboy-dgrey [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ` }
+                        />
+
+          */}
+                      </div>
+
+                    ) : (
+                      <div className="flex flex-col justify-end items-center h-full text-red-400">
+                        <h2 className="text-4xl text-center">
+                          Select an attack!
+                        </h2>
+                        <div className="flex justify-center mt-2">
+                         <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[20px] border-l-transparent border-r-transparent border-t-red-400"></div>
+                        </div>
+                      </div>
+
+
+                    )}
+                  </div>
+                ) : (
+                  ""
+                )}
                 <div className="flex-1">
                   <h1 className="text-1xl font-bold text-blue-600">
                     {pokemon.name.toUpperCase()} - {pokemon.id}
@@ -124,7 +312,7 @@ function App() {
                   <h2 className="text-1xl font-bold text-green-500">
                      <div
                       className="bg-green-500 h-full rounded-md text-white p-1 text-sm"
-                      style={{ width: `${index===1 ? hp2/10 : hp1/10 }%` }}
+                      style={{ width: `${index===1 ? hp2/15 : hp1/15 }%` }}
                     >{index===1 ? hp2 : hp1 }</div>
                     
                   </h2>
@@ -142,23 +330,12 @@ function App() {
                   />
                 </div>  
                   {index==0 ? 
-                 <div className=" flex-1 pt-4 bg-red-400 text-white text-center h-full p-2">
-                    ATTACK{" "}
+                 <div className=" flex-1 pt-2 pb-2 bg-red-400 text-white text-center h-full flex flex-col items-center justify-center ">
+                    <p className="">Attack - {" "} 
                     {pokemon1?.moves?.[0]?.move?.name
                       ? pokemon1.moves[0].move.name.toUpperCase()
-                      : "No Move"}{" "}
-                    <div className="grid grid-cols-2 gap-4 text-right ">
-                      <div className="p-2 pl-28 pr-2">
-                        <div className="">
-                          <span>{opponentAttack.num1}</span>
-                          <span className="ml-1">+</span>
-                        </div>
-                        <div className="">
-                          <span>{opponentAttack.num2}</span>
-                          <span className="ml-1">=</span>
-                        </div>
-                      </div>
-                    </div>
+                      : "No Move"}{" "}</p>
+                      <h3 className="text-2xl">{opponentAttack.num1}+{opponentAttack.num2}=<span className="font-bold">{opponentAttack.result}</span></h3>
                  </div>
                    : ""}
               </div>
@@ -168,16 +345,37 @@ function App() {
         <div className="w-full h-full bg-poke-grey text-white flex flex-col md:flex-row items-center justify-center">
           <div className="flex-[1] p-6">
             {pokemon2 ? `What will ${pokemon2.name.toUpperCase()} do?` : "Loading Pokémon..."}
+                <p>Last Knocked-Out Pokémon</p>
+                <div className="flex">
+                  {knockedOutImages.map((img, index) => (
+                    
+                    <img key={index} src={img} alt="Knocked-Out Pokémon" style={{ width: 80, height: 80 }} />
+                    
+                ))}
+                </div>
           </div>
           <div className="m-6 bg-white text-black rounded p-0 text-2xl flex-[3]">
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-0">
-              {attacks.map((attack, index) => (
+              {attacks.map((attack, aindex) => (
                 //<li className="p-2 m-1 pl-8 pr-12 text-right bg-red-400 text-white" key={index} onClick={() => handleAttackClick(attack.result)}>
-                <li className={`p-2 m-1 pl-2 pr-12   ${activeIndex === index ? "bg-red-800" : "bg-red-400"} text-white flex flex-row items-center`} key={index} onClick={() => setActiveIndex(index)}> 
+                <li className={`p-2 m-1 pl-2 pr-12   ${activeIndex === aindex ? "bg-red-800" : "bg-red-400"} text-white flex flex-row items-center`} key={aindex} 
+                onClick={() => {
+                  setActiveIndex(aindex);
+                  setSelectedAttack(attack);
+                  
+                  setThousands(""); // Reset thousands input
+                  setTens(""); // Reset tens input
+                  setUnits(""); // Reset units input
+                  // Focus the input field
+                  if (unitsRef.current) {
+                    unitsRef.current.focus();
+                  }
+                  
+                }}> 
 
                   <div className="text-sm md:text-lg  flex-[2] ">
-                    {pokemon2?.moves?.[index]?.move?.name
-                      ? pokemon2.moves[index].move.name.toUpperCase()
+                    {pokemon2?.moves?.[aindex]?.move?.name
+                      ? pokemon2.moves[aindex].move.name.toUpperCase()
                       : "No Move"}
                   </div>
                   <div className="inline-block flex-[1] mr-4 text-right">
@@ -191,6 +389,7 @@ function App() {
                     </div>
                   </div>
                   <div className=" inline-block flex-[1] ">
+                 {/*
                   <input
                     type="number"
                    
@@ -201,8 +400,9 @@ function App() {
                       }
                     }} // Update state
                     placeholder="0"
-                    className={`border p-1 m-2 rounded w-full text-gameboy-dgrey ${activeIndex === index ? "visible" : "invisible"  } [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ` }
+                    className={`border p-1 m-2 rounded w-full text-gameboy-dgrey ${activeIndex === aindex ? "visible" : "invisible"  } [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ` }
                   />
+                  */}
                   </div>
                 </li>
               ))}

@@ -9,7 +9,6 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [pokemonIds, setPokemonIds] = useState<[number, number]>([58, 155]); // State to store Pokémon IDs
   const [attackAnim, setAttackAnim] = useState<any>(null);
-  const inputRef = useRef(null);
 
   const [activeIndex, setActiveIndex] = useState<any>(null); // State to track active <li>
   const [selectedAttack, setSelectedAttack] = useState<any>(null); // State for selected attack
@@ -99,7 +98,7 @@ function App() {
     
    };
 
-   const [knockedOutImages, setKnockedOutImages] = useState([]); // Store last 3 KO images
+   const [knockedOutImages, setKnockedOutImages] = useState<string[]>([]); // Store last 3 KO images
 
    // Detect if pokemon was beaten
    useEffect(() => {
@@ -193,14 +192,14 @@ function App() {
                           {/* First row (numbers) */}
                           <span className="ml-1"> </span>
                           {selectedAttack.num1.toString().split("").length < 2 ? (<span> </span>) : null}
-                          {selectedAttack.num1.toString().split("").map((digit, index) => (
+                          {selectedAttack.num1.toString().split("").map((digit: string, index: number) => (
                             <span key={index} className="mx-1">{digit}</span>
                           ))}
                           <span className="ml-1">+</span>
 
                           <span className="ml-1"> </span>
                           {selectedAttack.num2.toString().split("").length < 2 ? (<span> </span>) : null}
-                          {selectedAttack.num2.toString().split("").map((digit, index) => (
+                          {selectedAttack.num2.toString().split("").map((digit: string, index: number) => (
                             <span key={index} className="mx-1">{digit}</span>
                           ))}
                           <span className="ml-1">=</span>
@@ -216,7 +215,7 @@ function App() {
 
                               const lastDigit = newThousands.slice(-1); 
                               // Only allow 1 digit numbers
-                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                              if (lastDigit.length <= 1 && !Number.isNaN(Number(lastDigit))) {
                                 handleChange(lastDigit, "thousands");
                               }
 
@@ -235,7 +234,7 @@ function App() {
                               const value = e.target.value;
                               const lastDigit = value.slice(-1); 
                               // Only allow 1 digit numbers
-                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                              if (lastDigit.length <= 1 && !Number.isNaN(Number(lastDigit))) {
                                 handleChange(lastDigit, "tens");
                               }
                             }}
@@ -251,7 +250,7 @@ function App() {
                               const value = e.target.value;
                               const lastDigit = value.slice(-1); 
                               // Only allow 1 digit numbers
-                              if (lastDigit.length <= 1 && !isNaN(lastDigit)) {
+                              if (lastDigit.length <= 1 && !Number.isNaN(Number(lastDigit))) {
                                 handleChange(lastDigit, "units");
                               }
                             }}
